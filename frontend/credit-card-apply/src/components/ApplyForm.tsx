@@ -1,50 +1,71 @@
-import {
-  TextField,
-  Button,
-  Card,
-  CardContent,
-  MenuItem,
-  Stack,
-} from "@mui/material";
+import { TextField, Button, Card, CardContent, Stack } from "@mui/material";
 import { useState } from "react";
 import type { ChangeEvent } from "react";
 import { applyCard } from "../services/applicationService";
 import type { ApplyFormData } from "../models/ApplyForm";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import dayjs, { Dayjs } from "dayjs";
 
 const ApplyForm = () => {
+  const [dob, setDob] = useState<Dayjs | null>(null);
+  const [dobError, setDobError] = useState("");
+
   const [form, setForm] = useState<ApplyFormData>({
     fullName: "",
     pan: "",
     phone: "",
     income: "",
     profession: "",
-    age: "",
+    dob: "",
   });
 
   const handleChange =
     (field: keyof ApplyFormData) => (event: ChangeEvent<HTMLInputElement>) => {
       const value =
-        field === "income" || field === "age"
-          ? Number(event.target.value)
-          : event.target.value;
+        field === "income" ? Number(event.target.value) : event.target.value;
 
-      setForm({
-        ...form,
+      setForm((prev) => ({
+        ...prev,
         [field]: value,
-      });
+      }));
     };
 
+  const handleDobChange = (newValue: Dayjs | null) => {
+    setDob(newValue);
+
+    if (!newValue) {
+      setDobError("Date of birth is required");
+      setForm((prev) => ({ ...prev, dob: "" }));
+      return;
+    }
+
+    const age = dayjs().diff(newValue, "year");
+
+    if (age < 18) {
+      setDobError("You must be at least 18 years old");
+      setForm((prev) => ({ ...prev, dob: "" }));
+    } else {
+      setDobError("");
+      setForm((prev) => ({
+        ...prev,
+        dob: newValue.format("YYYY-MM-DD"),
+      }));
+    }
+  };
+
   const handleSubmit = async (): Promise<void> => {
+    if (dobError || !form.dob) {
+      alert("Please select a valid Date of Birth");
+      return;
+    }
+
     await applyCard(form);
     alert("Application Submitted");
   };
 
-  const ageOptions = Array.from({ length: 43 }, (_, i) => i + 18); // 18–60
-
   return (
     <Card>
       <CardContent>
-        {/* Stack just for spacing — not layout grid */}
         <Stack spacing={2}>
           <TextField
             label="Full Name"
@@ -82,20 +103,20 @@ const ApplyForm = () => {
             onChange={handleChange("profession")}
           />
 
-          {/* AGE SELECT */}
-          <TextField
-            select
-            label="Age"
-            fullWidth
-            value={form.age}
-            onChange={handleChange("age")}
-          >
-            {ageOptions.map((age) => (
-              <MenuItem key={age} value={age}>
-                {age}
-              </MenuItem>
-            ))}
-          </TextField>
+          <DatePicker
+            label="Date of Birth"
+            value={dob}
+            onChange={handleDobChange}
+            disableFuture
+            maxDate={dayjs().subtract(18, "year")}
+            slotProps={{
+              textField: {
+                fullWidth: true,
+                error: Boolean(dobError),
+                helperText: dobError || "Select your DOB",
+              },
+            }}
+          />
 
           <Button variant="contained" fullWidth onClick={handleSubmit}>
             Apply

@@ -4,5 +4,5 @@ export interface ApplyFormData {
   phone: string;
   income: number | "";
   profession: string;
-  age: number | "";
+  dob: string;
 }
