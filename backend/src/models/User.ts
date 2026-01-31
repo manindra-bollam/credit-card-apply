@@ -3,9 +3,8 @@ import mongoose, { Document, Schema, Types } from 'mongoose';
 export interface IUser extends Document {
   _id: Types.ObjectId;
   email: string;
-  passwordHash: string;
-  firstName: string;
-  lastName: string;
+  password: string;
+  fullName: string;
   phone: string;
   dateOfBirth: Date;
   ssn: string; // Stored hashed
@@ -25,17 +24,6 @@ export interface IUser extends Document {
   updatedAt: Date;
 }
 
-const addressSchema = new Schema(
-  {
-    street: { type: String, required: true },
-    city: { type: String, required: true },
-    state: { type: String, required: true },
-    zipCode: { type: String, required: true },
-    country: { type: String, required: true, default: 'USA' },
-  },
-  { _id: false }
-);
-
 const documentSchema = new Schema(
   {
     type: { type: String, required: true },
@@ -54,13 +42,11 @@ const userSchema = new Schema<IUser>(
       lowercase: true,
       trim: true,
     },
-    passwordHash: { type: String, required: true },
-    firstName: { type: String, required: true, trim: true },
-    lastName: { type: String, required: true, trim: true },
+    password: { type: String, required: true },
+    fullName: { type: String, required: true, trim: true },
     phone: { type: String, required: true },
     dateOfBirth: { type: Date, required: true },
-    ssn: { type: String, required: true }, // Store hashed only
-    address: { type: addressSchema, required: true },
+    address: { type: String, required: true },
     documents: { type: [documentSchema], default: [] },
   },
   {
