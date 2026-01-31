@@ -27,11 +27,7 @@ app.use("/api/users", userRoutes);
 // ============ USER ROUTES ============
 
 // Create a new user
-<<<<<<< Updated upstream
-app.post('/api/apply', async (req, res) => {
-=======
 app.post("/api/users", async (req, res) => {
->>>>>>> Stashed changes
   try {
     const user = new User(req.body);
     await user.save();
