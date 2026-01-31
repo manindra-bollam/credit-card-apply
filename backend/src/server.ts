@@ -22,7 +22,7 @@ app.get('/api/health', (req, res) => {
 // ============ USER ROUTES ============
 
 // Create a new user
-app.post('/api/users', async (req, res) => {
+app.post('/api/apply', async (req, res) => {
   try {
     const user = new User(req.body);
     await user.save();
