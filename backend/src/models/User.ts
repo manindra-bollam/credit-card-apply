@@ -7,14 +7,7 @@ export interface IUser extends Document {
   fullName: string;
   phone: string;
   dateOfBirth: Date;
-  ssn: string; // Stored hashed
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-  };
+  address: string;
   documents: {
     type: string;
     url: string;
