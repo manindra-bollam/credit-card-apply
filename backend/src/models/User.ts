@@ -16,6 +16,11 @@ export interface IUser extends Document {
     zipCode: string;
     country: string;
   };
+  documents: {
+    type: string;
+    url: string;
+    uploadedAt: Date;
+  }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,6 +32,15 @@ const addressSchema = new Schema(
     state: { type: String, required: true },
     zipCode: { type: String, required: true },
     country: { type: String, required: true, default: 'USA' },
+  },
+  { _id: false }
+);
+
+const documentSchema = new Schema(
+  {
+    type: { type: String, required: true },
+    url: { type: String, required: true },
+    uploadedAt: { type: Date, default: Date.now },
   },
   { _id: false }
 );
@@ -47,6 +61,7 @@ const userSchema = new Schema<IUser>(
     dateOfBirth: { type: Date, required: true },
     ssn: { type: String, required: true }, // Store hashed only
     address: { type: addressSchema, required: true },
+    documents: { type: [documentSchema], default: [] },
   },
   {
     timestamps: true,

@@ -1,7 +1,10 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
 
+export type ApplicationStatus = 'pending' | 'under_review' | 'approved' | 'rejected' | 'cancelled' | 'dispatched' | 'delivered';
+
 export interface IApplicationEntry {
   applicationId: Types.ObjectId;
+  status: ApplicationStatus;
   timestamp: Date;
 }
 
@@ -16,6 +19,12 @@ export interface IApplication extends Document {
 const applicationEntrySchema = new Schema<IApplicationEntry>(
   {
     applicationId: { type: Schema.Types.ObjectId, required: true },
+    status: {
+      type: String,
+      enum: ['pending', 'under_review', 'approved', 'rejected', 'cancelled', 'dispatched', 'delivered'],
+      default: 'pending',
+      required: true,
+    },
     timestamp: { type: Date, required: true, default: Date.now },
   },
   { _id: false }

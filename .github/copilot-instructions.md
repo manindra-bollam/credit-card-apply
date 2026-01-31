@@ -1,91 +1,78 @@
 # Credit Card Application - AI Coding Instructions
 
 ## Project Overview
-A credit card application system built with the MERN stack (MongoDB, Express, React, Node.js) using TypeScript throughout.
+Credit card application system using MERN stack (MongoDB, Express, React, Node.js) with TypeScript. Early-stage project - backend API functional, frontend still Vite starter template.
 
 ## Architecture
 ```
 credit-card-apply/
-├── backend/           # Express.js + TypeScript API server
-│   ├── src/
-│   │   ├── controllers/   # Route handlers
-│   │   ├── models/        # Mongoose schemas
-│   │   ├── routes/        # Express route definitions
-│   │   ├── middleware/    # Auth, validation, error handling
-│   │   ├── services/      # Business logic
-│   │   └── types/         # TypeScript interfaces
-│   └── package.json
-├── frontend/          # React + TypeScript SPA
-│   ├── src/
-│   │   ├── components/    # Reusable UI components
-│   │   ├── pages/         # Route-level components
-│   │   ├── hooks/         # Custom React hooks
-│   │   ├── services/      # API client functions
-│   │   └── types/         # Shared TypeScript types
-│   └── package.json
+├── backend/                    # Express.js API (TypeScript)
+│   └── src/
+│       ├── server.ts           # Entry point, all routes, MongoDB connection
+│       └── models/             # Mongoose schemas + TypeScript interfaces
+│           ├── index.ts        # Barrel export (import models from here)
+│           ├── User.ts         # User with embedded address subdocument
+│           └── Application.ts  # Application history (one-to-many per user)
+├── frontend/credit-card-apply/ # React 19 + Vite (nested directory!)
+│   └── src/App.tsx             # Currently Vite starter - needs implementation
 ```
 
-## Getting Started
-
-### Backend
+## Developer Workflow
 ```bash
-cd backend
-npm install
-npm run dev      # Start dev server with hot reload
-npm run build    # Compile TypeScript
-npm start        # Run production build
+# Backend (from project root)
+cd backend && npm run dev       # tsx watch mode on :3000
+
+# Frontend (note nested path!)
+cd frontend/credit-card-apply && npm run dev   # Vite on :5173
 ```
 
-### Frontend
-```bash
-cd frontend
-npm install
-npm run dev      # Vite dev server
-npm run build    # Production build
+## API Response Pattern
+All endpoints return consistent JSON structure - follow this when adding routes:
+```typescript
+// Success: { success: true, data: <result> }
+// Error:   { success: false, error: <message> }
+res.status(201).json({ success: true, data: user });
+res.status(400).json({ success: false, error: message });
 ```
 
-## Code Conventions
+## Current API Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Health check |
+| POST | `/api/users` | Create user |
+| GET | `/api/users` | List all users |
+| GET | `/api/users/:id` | Get user by ID |
+| POST | `/api/applications` | Create application (requires `userId` in body) |
+| GET | `/api/applications` | List all applications (populates user) |
+| GET | `/api/applications/user/:userId` | Get applications for specific user |
 
-### TypeScript
-- Use strict mode (`"strict": true` in tsconfig)
-- Prefer interfaces over types for object shapes
-- Define API request/response types in `types/` directories
-- Use `unknown` over `any`; narrow types explicitly
+## Mongoose Model Patterns
+```typescript
+// 1. Always export interface + model together
+export interface IModelName extends Document {
+  _id: Types.ObjectId;  // Required for TypeScript refs
+  // fields...
+  createdAt: Date;      // From timestamps: true
+  updatedAt: Date;
+}
 
-### Backend Patterns
-- **Controllers** handle HTTP concerns only; delegate to services
-- **Services** contain business logic; return typed results
-- **Models** use Mongoose with TypeScript interfaces:
-  ```typescript
-  interface IApplication extends Document {
-    applicantId: Types.ObjectId;
-    status: 'pending' | 'approved' | 'rejected';
-  }
-  ```
-- Use async/await with try-catch in controllers
-- Validate requests with middleware (e.g., express-validator, zod)
+// 2. Embedded subdocuments use { _id: false }
+const addressSchema = new Schema({...}, { _id: false });
 
-### Frontend Patterns
-- Functional components with hooks
-- Use React Query or SWR for server state
-- Keep API calls in `services/` directory
-- Type all props with interfaces
+// 3. Add new models to models/index.ts barrel export
+export { NewModel, INewModel } from './NewModel';
+```
 
-### API Design
-- RESTful routes: `/api/applications`, `/api/applications/:id`
-- Return consistent response shapes:
-  ```typescript
-  { success: true, data: T } | { success: false, error: string }
-  ```
+## Adding New Features
+
+**New API route**: Add directly in `server.ts` (no separate routes directory yet)
+**New model**: Create in `backend/src/models/`, export from `index.ts`, import in `server.ts`
+**Frontend components**: `frontend/credit-card-apply/src/` - structure not yet established
 
 ## Environment Variables
-- Backend: `.env` in `backend/` (never commit)
-- Frontend: `.env` in `frontend/` (Vite uses `VITE_` prefix)
-- Required: `MONGODB_URI`, `JWT_SECRET`, `VITE_API_URL`
+- **Backend**: `backend/.env` → `MONGODB_URI`, `PORT` (defaults: localhost:27017, 3000)
+- **Frontend**: `frontend/credit-card-apply/.env` → use `VITE_` prefix
 
-## Security Considerations
-- Sanitize all user input before MongoDB queries
-- Hash sensitive data (SSN, etc.) before storage
-- Use JWT for authentication with httpOnly cookies
-- Implement rate limiting on application submission endpoints
-- Never log PII in production
+## Security Requirements
+- `User.ssn` and `User.passwordHash` must NEVER be stored in plaintext
+- Never log PII (SSN, passwords) even in development
